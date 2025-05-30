@@ -1,0 +1,27 @@
+import requests
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+import os
+
+# 从GitHub Secrets读取公钥（避免硬编码）
+PUBLIC_KEY = os.environ.get('ENCRYPT_PUBLIC_KEY')
+
+def fetch_nodes():
+    """模拟从公开API获取节点数据（需替换为合法数据源）"""
+    response = requests.get("https://example.com/api/nodes")
+    return response.json()  # 返回节点列表
+
+def encrypt_data(data, public_key):
+    """使用RSA公钥加密数据"""
+    public_key = serialization.load_pem_public_key(public_key.encode())
+    encrypted = public_key.encrypt(
+        data.encode(),
+        padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
+    )
+    return encrypted
+
+if __name__ == "__main__":
+    nodes = str(fetch_nodes())
+    encrypted_nodes = encrypt_data(nodes, PUBLIC_KEY)
+    with open("encrypted_nodes.bin", "wb") as f:
+        f.write(encrypted_nodes)  # 保存加密后的二进制文件
